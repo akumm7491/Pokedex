@@ -17,4 +17,10 @@ This simple app lets you explore the fascinating world of Pokemon.
 
 ---
 
+## Demo Video
+
+Check out the app in action:
+https://github.com/user-attachments/assets/bdcca962-611a-47f8-809b-4666cc37233a
+
+
 Built with fun and exploration in mind! Enjoy! ✨ 
