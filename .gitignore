@@ -32,3 +32,6 @@ lint-baseline.xml
 */build/outputs/
 */build/intermediates/
 */build/generated/
+
+# Kotlin build cache/errors
+.kotlin/errors/
