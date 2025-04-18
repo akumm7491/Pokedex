@@ -49,7 +49,6 @@ class PokemonListViewModel @Inject constructor(
 
     init {
         handleIntents()
-        // Trigger initial load automatically on ViewModel creation
         processIntent(PokemonListIntent.LoadInitialList)
     }
 
@@ -108,26 +107,24 @@ class PokemonListViewModel @Inject constructor(
         if (!isRetry && isInitialLoad && state.value.items.isNotEmpty()) return // Don't initial load if already have items unless retrying
 
         val urlToFetch = if (isInitialLoad) {
-            // Always use the initial URL for initial load or retry
-            _state.value.copy().nextUrl ?: BASE_URL // Use state's nextUrl or default if null
+            _state.value.copy().nextUrl ?: BASE_URL
         } else {
-            state.value.nextUrl ?: return // If loading more, must have a nextUrl
+            state.value.nextUrl ?: return
         }
 
         viewModelScope.launch {
-            // Update loading state
             updateState {
                 copy(
                     isLoadingInitial = isInitialLoad,
                     isLoadingMore = !isInitialLoad,
-                    error = null // Clear previous error on new attempt
+                    error = null
                 )
             }
 
             repository.fetchPokemon(urlToFetch)
                 .onSuccess { response ->
                     updateState {
-                        val updatedList = if (isInitialLoad) response.results else this.items + response.results
+                        val updatedList = this.items + response.results
                         copy(
                             items = updatedList,
                             nextUrl = response.next,
@@ -149,8 +146,7 @@ class PokemonListViewModel @Inject constructor(
         }
     }
 
-    // Helper to update state immutably (ensures state consistency)
     private fun updateState(handler: PokemonListState.() -> PokemonListState) {
-        _state.update(handler) // Use update for thread-safe updates
+        _state.update(handler)
     }
 }

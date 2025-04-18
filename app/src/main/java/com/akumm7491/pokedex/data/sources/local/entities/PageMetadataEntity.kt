@@ -7,7 +7,7 @@ import androidx.room.PrimaryKey
 @Entity(tableName = "page_metadata")
 data class PageMetadataEntity(
     @PrimaryKey
-    @ColumnInfo(name = "page_url") val pageUrl: String, // The URL of the fetched page (e.g., ...?limit=20&offset=0)
-    @ColumnInfo(name = "next_url") val nextUrl: String?, // The 'next' URL provided by the API for this page
-    @ColumnInfo(name = "timestamp") val timestamp: Long // When this page data was fetched/cached
+    @ColumnInfo(name = "page_url") val pageUrl: String,
+    @ColumnInfo(name = "next_url") val nextUrl: String?,
+    @ColumnInfo(name = "timestamp") val timestamp: Long
 )

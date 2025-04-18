@@ -214,8 +214,8 @@ fun DetailSectionTitle(title: String) {
 
 @Composable
 fun PokemonStat(statInfo: PokemonStatInfo) {
-    val maxStatValue = 200f // A reasonable max value for scaling progress bars
-    val statProgress = (statInfo.baseStat / maxStatValue).coerceIn(0f, 1f) // Normalize stat
+    val maxStatValue = 200f
+    val statProgress = (statInfo.baseStat / maxStatValue).coerceIn(0f, 1f)
 
     Row(
         verticalAlignment = Alignment.CenterVertically,

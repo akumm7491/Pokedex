@@ -47,12 +47,11 @@ fun <T> InfiniteScrollList(
     ) {
         items(
             count = items.size,
-            key = { index -> itemKey(items[index]) } // Use the provided key extractor
+            key = { index -> itemKey(items[index]) }
         ) { index ->
-            itemContent(items[index]) // Use the provided item renderer
+            itemContent(items[index])
         }
 
-        // Show the loading indicator at the end if necessary
         if (isLoadingMore && canLoadMore) {
             item {
                 loadingIndicator()

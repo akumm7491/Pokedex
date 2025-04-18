@@ -9,7 +9,6 @@ interface PokemonRemoteDataSource {
     suspend fun getPokemonDetail(idOrName: String): PokemonDetailResponse
 }
 
-// Implementation using Retrofit ApiService
 class PokemonRemoteDataSourceImpl @Inject constructor(
     private val apiService: PokemonApiService
 ) : PokemonRemoteDataSource {

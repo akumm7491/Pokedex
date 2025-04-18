@@ -32,15 +32,13 @@ object AppModule {
     @Singleton
     fun provideJson(): Json = Json {
         ignoreUnknownKeys = true
-        isLenient = true // If API might return unexpected fields sometimes
+        isLenient = true
     }
 
     @Provides
     @Singleton
     fun provideOkHttpClient(): OkHttpClient {
         return OkHttpClient.Builder()
-            // Optional: Add logging interceptor for debugging network calls
-            // .addInterceptor(HttpLoggingInterceptor().apply { level = HttpLoggingInterceptor.Level.BODY })
             .build()
     }
 
@@ -48,7 +46,7 @@ object AppModule {
     @Singleton
     fun provideRetrofit(okHttpClient: OkHttpClient, json: Json): Retrofit {
         return Retrofit.Builder()
-            .baseUrl("https://pokeapi.co/api/v2/") // Base URL needed by Retrofit
+            .baseUrl("https://pokeapi.co/api/v2/")
             .client(okHttpClient)
             .addConverterFactory(json.asConverterFactory("application/json".toMediaType()))
             .build()
@@ -57,7 +55,6 @@ object AppModule {
     @Provides
     @Singleton
     fun providePokemonApiService(retrofit: Retrofit): PokemonApiService {
-        // Provides the Retrofit service implementation
         return retrofit.create(PokemonApiService::class.java)
     }
 
@@ -66,20 +63,16 @@ object AppModule {
     @Provides
     @Singleton
     fun provideAppDatabase(app: Application): AppDatabase {
-        // Provides the Room database instance
         return Room.databaseBuilder(
             app,
             AppDatabase::class.java,
             "pokemon_database"
-        )
-            // .fallbackToDestructiveMigration() // Add proper migrations in production!
-            .build()
+        ).build()
     }
 
     @Provides
     @Singleton
     fun providePokemonDao(database: AppDatabase): PokemonDao {
-        // Provides the Room Data Access Object (DAO)
         return database.pokemonDao()
     }
 
@@ -88,17 +81,12 @@ object AppModule {
     @Provides
     @Singleton
     fun providePokemonRemoteDataSource(apiService: PokemonApiService): PokemonRemoteDataSource {
-        // Provides the implementation bound to the interface
         return PokemonRemoteDataSourceImpl(apiService)
-        // Note: Alternatively, if PokemonRemoteDataSourceImpl has @Inject constructor,
-        // Hilt could create it automatically. Using @Provides here is explicit.
-        // Or use @Binds in an abstract module for interface binding.
     }
 
     @Provides
     @Singleton
     fun providePokemonLocalDataSource(pokemonDao: PokemonDao): PokemonLocalDataSource {
-        // Provides the implementation bound to the interface
         return PokemonLocalDataSourceImpl(pokemonDao)
     }
 
@@ -107,10 +95,9 @@ object AppModule {
     @Provides
     @Singleton
     fun providePokemonRepository(
-        remoteDataSource: PokemonRemoteDataSource, // Depends on the provided DataSources
+        remoteDataSource: PokemonRemoteDataSource,
         localDataSource: PokemonLocalDataSource
-    ): PokemonRepository { // Provides the interface type
-        // Provides the implementation bound to the interface
+    ): PokemonRepository {
         return PokemonRepositoryImpl(remoteDataSource, localDataSource)
     }
 }

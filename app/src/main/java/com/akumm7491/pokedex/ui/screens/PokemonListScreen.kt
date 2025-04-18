@@ -1,13 +1,20 @@
 package com.akumm7491.pokedex.ui.screens
 
-import android.media.Image
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.BrokenImage
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Button
@@ -21,15 +28,17 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableLongStateOf
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -48,6 +57,7 @@ import com.akumm7491.pokedex.ui.components.InfiniteScrollList
 import com.akumm7491.pokedex.ui.theme.PokedexTheme
 import com.akumm7491.pokedex.ui.viewmodels.PokemonListIntent
 import com.akumm7491.pokedex.ui.viewmodels.PokemonListViewModel
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -57,11 +67,14 @@ fun PokemonListScreen(
 ) {
     val state by viewModel.state.collectAsState()
     val filteredItems by viewModel.filteredPokemonList.collectAsState()
+    val snackbarHostState = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
 
     Scaffold(
         topBar = {
             TopAppBar(title = { Text("Pokédex") })
-        }
+        },
+        snackbarHost = { SnackbarHost(snackbarHostState) }
     ) { innerPadding ->
         Column(
             modifier = Modifier
@@ -71,20 +84,19 @@ fun PokemonListScreen(
 
             // --- Search Bar ---
             OutlinedTextField(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 8.dp, vertical = 8.dp),
+                label = { Text("Search Name or Number") },
+                singleLine = true,
                 value = state.searchQuery,
                 onValueChange = { query ->
                     viewModel.processIntent(PokemonListIntent.UpdateSearchQuery(query))
                 },
-                label = { Text("Search Name or Number") },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 8.dp, vertical = 8.dp),
-                singleLine = true,
                 leadingIcon = {
                     Icon(Icons.Default.Search, contentDescription = "Search Icon")
                 },
                 trailingIcon = {
-                    // Show clear button only if query is not empty
                     if (state.searchQuery.isNotEmpty()) {
                         IconButton(onClick = { viewModel.processIntent(PokemonListIntent.UpdateSearchQuery("")) }) {
                             Icon(Icons.Filled.Clear, contentDescription = "Clear search")
@@ -94,12 +106,12 @@ fun PokemonListScreen(
             )
 
             // --- Content Area ---
-            Box(modifier = Modifier.weight(1f)) { // Box takes remaining space
+            Box(modifier = Modifier.weight(1f)) {
 
                 // Determine UI state based on loading, error, and filtered items
+                val showErrorFullScreen = state.error != null && filteredItems.isEmpty() && state.isLoadingInitial
                 val showEmptySearch = filteredItems.isEmpty() && state.searchQuery.isNotEmpty() && !state.isLoadingInitial && state.error == null
-                val showEmptyInitial = filteredItems.isEmpty() && state.searchQuery.isBlank() && !state.isLoadingInitial && state.error == null && state.items.isNotEmpty()
-                val showErrorFullScreen = state.error != null && filteredItems.isEmpty() && !state.isLoadingInitial
+                val showEmptyInitial = filteredItems.isEmpty() && state.searchQuery.isBlank() && !state.isLoadingInitial && state.error == null && state.items.isEmpty()
 
                 when {
                     // 1. Full Screen Error (if error occurred before any items were loaded/filtered)
@@ -115,7 +127,7 @@ fun PokemonListScreen(
                             Text("No Pokémon found matching '${state.searchQuery}'", textAlign = TextAlign.Center, modifier = Modifier.padding(16.dp))
                         }
                     }
-                    // 3. Optional: Handle case where initial load finished but list is somehow empty
+                    // 3. Handle case where initial load finished but list is somehow empty
                     showEmptyInitial -> {
                         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                             Text("No Pokémon available.", textAlign = TextAlign.Center, modifier = Modifier.padding(16.dp))
@@ -136,34 +148,36 @@ fun PokemonListScreen(
                                 )
                             },
                             isLoadingMore = state.isLoadingMore,
-                            // Only allow loading more if NOT searching and API indicates more are available
                             canLoadMore = state.canLoadMore && state.searchQuery.isBlank(),
                             onLoadMore = {
-                                // Only trigger load more if search is not active
                                 if (state.searchQuery.isBlank()) {
                                     viewModel.processIntent(PokemonListIntent.LoadMoreItems)
                                 }
                             },
                         )
 
-                        // Overlay small error at the bottom if loading more fails while items are shown
-                        if (state.error != null && filteredItems.isNotEmpty() && !showErrorFullScreen) {
-                            Text(
-                                text = "Error loading more: ${state.error}",
-                                color = Color.Red,
-                                textAlign = TextAlign.Center,
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .align(Alignment.BottomCenter) // Align error to bottom
-                                    .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.9f))
-                                    .padding(8.dp)
-                            )
+                        // Show Snackbar on "load more" error
+                        LaunchedEffect(state.error, filteredItems.isNotEmpty()) {
+                            // Only show the Snackbar if an error is actually present and we have items loaded.
+                            if (state.error != null && filteredItems.isNotEmpty()) {
+                                scope.launch {
+                                    val result = snackbarHostState.showSnackbar(
+                                        message = "Error loading more Pokémon: ${state.error}",
+                                        actionLabel = "Retry",
+                                        withDismissAction = true
+                                    )
+                                    if (result == SnackbarResult.ActionPerformed) {
+                                        viewModel.processIntent(PokemonListIntent.LoadMoreItems)
+                                    }
+                                    // Clear the error in the ViewModel now that it has been shown
+                                    viewModel.processIntent(PokemonListIntent.ClearError)
+                                }
+                            }
                         }
                     }
                 }
 
-                // Overlay: Initial Loading Spinner (shows only during the very first load)
-                // Check filteredItems empty as well, so it doesn't overlay "No Results" state
+                // Show initial loading spinner if the search query is empty and there are no items yet
                 if (state.isLoadingInitial && filteredItems.isEmpty()) {
                     Box(
                         modifier = Modifier.fillMaxSize(),
@@ -233,7 +247,8 @@ fun PokemonItem(
                             .background(MaterialTheme.colorScheme.errorContainer),
                         contentAlignment = Alignment.Center
                     ) {
-                        val randomErrorDrawableId = remember { errorDrawableIds.random() }
+                        // Keep track of the same random error drawable for the same item in the list
+                        val randomErrorDrawableId = remember(item.id ?: item.imageUrl) { errorDrawableIds.random() }
 
                         // Use a random error image if loading failed.
                         Image(

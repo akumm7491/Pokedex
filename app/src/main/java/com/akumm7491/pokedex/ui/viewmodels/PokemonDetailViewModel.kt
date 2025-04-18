@@ -11,7 +11,6 @@ import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-// State for the Detail Screen
 data class PokemonDetailState(
     val isLoading: Boolean = true,
     val pokemon: PokemonDetailResponse? = null,
@@ -35,7 +34,7 @@ class PokemonDetailViewModel @Inject constructor(
 
     fun fetchDetails() {
         viewModelScope.launch {
-            _state.update { it.copy(isLoading = true, error = null) } // Start loading
+            _state.update { it.copy(isLoading = true, error = null) }
 
             repository.fetchPokemonDetail(pokemonId.toString())
                 .onSuccess { detailResponse ->
