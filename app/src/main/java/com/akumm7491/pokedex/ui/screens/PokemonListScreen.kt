@@ -247,7 +247,6 @@ fun PokemonItem(
                             .background(MaterialTheme.colorScheme.errorContainer),
                         contentAlignment = Alignment.Center
                     ) {
-                        // Keep track of the same random error drawable for the same item in the list
                         val randomErrorDrawableId = remember(item.id ?: item.imageUrl) { errorDrawableIds.random() }
 
                         // Use a random error image if loading failed.
@@ -262,7 +261,7 @@ fun PokemonItem(
                     }
                 },
             )
-            HorizontalDivider() // Add a divider between image and text
+            HorizontalDivider()
 
             // Column for Text content below the image
             Column(

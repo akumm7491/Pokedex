@@ -12,7 +12,6 @@ import androidx.navigation.navArgument
 import com.akumm7491.pokedex.ui.screens.PokemonDetailScreen
 import com.akumm7491.pokedex.ui.screens.PokemonListScreen
 
-// Sealed class for type-safe navigation routes
 sealed class Screen(val route: String) {
     data object PokemonList : Screen("pokemon_list")
     data class PokemonDetail(val pokemonId: Int? = null) : Screen("pokemon_detail/{pokemonId}") {

@@ -132,7 +132,7 @@ fun PokemonDetailContent(pokemon: PokemonDetailResponse) {
                 ) {
                     pokemon.types.forEach { typeInfo ->
                         AssistChip(
-                            onClick = { /* No action */ },
+                            onClick = { },
                             label = { Text(typeInfo.type.name.replaceFirstChar { it.titlecase() }) }
                         )
                     }
@@ -165,7 +165,6 @@ fun PokemonDetailContent(pokemon: PokemonDetailResponse) {
             HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp))
         }
 
-        // Moves Section (Limit displayed moves for brevity)
         item { DetailSectionTitle("Moves") }
 
         // Chunk the moves list into rows based on the number of columns

@@ -16,7 +16,6 @@ data class PokemonDetailResponse(
     val sprites: PokemonSprites
 )
 
-// Sub-Models for nested data
 @Serializable
 data class PokemonStatInfo(
     @SerialName("base_stat") val baseStat: Int,

@@ -13,7 +13,6 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 
-// Single State Data Class
 data class PokemonListState(
     val items: List<PokemonListItem> = emptyList(),
     val isLoadingInitial: Boolean = false,
@@ -24,7 +23,6 @@ data class PokemonListState(
     val searchQuery: String = ""
 )
 
-// Intents (User Actions / Events)
 sealed interface PokemonListIntent {
     data object LoadInitialList : PokemonListIntent
     data object LoadMoreItems : PokemonListIntent

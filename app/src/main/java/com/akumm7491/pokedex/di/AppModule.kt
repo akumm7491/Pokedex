@@ -26,8 +26,6 @@ import javax.inject.Singleton
 @InstallIn(SingletonComponent::class)
 object AppModule {
 
-    // --- Network Setup ---
-
     @Provides
     @Singleton
     fun provideJson(): Json = Json {
@@ -58,8 +56,6 @@ object AppModule {
         return retrofit.create(PokemonApiService::class.java)
     }
 
-    // --- Database Setup ---
-
     @Provides
     @Singleton
     fun provideAppDatabase(app: Application): AppDatabase {
@@ -76,8 +72,6 @@ object AppModule {
         return database.pokemonDao()
     }
 
-    // --- DataSource Setup ---
-
     @Provides
     @Singleton
     fun providePokemonRemoteDataSource(apiService: PokemonApiService): PokemonRemoteDataSource {
@@ -89,8 +83,6 @@ object AppModule {
     fun providePokemonLocalDataSource(pokemonDao: PokemonDao): PokemonLocalDataSource {
         return PokemonLocalDataSourceImpl(pokemonDao)
     }
-
-    // --- Repository Setup ---
 
     @Provides
     @Singleton
